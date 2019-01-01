@@ -10,11 +10,17 @@ jobs:
                 command: dotnet build
             - run: 
                 name: Run Tests
-                command: dotnet test /p:CollectCoverage=true --no-build "--logger:trx"
+                command: dotnet test /p:CollectCoverage=true --no-build --logger:trx
             - run: 
                 name: Convert Test Results
                 command: |
                     mkdir -p ~/junit
                     trx2junit --output ~/junit/xUnit test/*.*Tests/TestResults/*.trx
+            - run:
+                name: Upload Code Coverage Report
+                command: |
+                    curl -s https://codecov.io/bash > codecov
+                    chmod +x codecov
+                    ./codecov -t "${CODECOV_TOKEN}"
             - store_test_results:
                 path: ~/junit
