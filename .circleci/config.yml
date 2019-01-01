@@ -1,0 +1,20 @@
+version: 2
+jobs:
+    build:
+        docker:
+            - image: codekinson/dotnet-circleci:preview
+        steps:
+            - checkout
+            - run: 
+                name: Build
+                command: dotnet build
+            - run: 
+                name: Run Tests
+                command: dotnet test /p:CollectCoverage=true --no-build "--logger:trx"
+            - run: 
+                name: Convert Test Results
+                command: |
+                    mkdir -p ~/junit
+                    trx2junit --output ~/junit/xUnit test/*.*Tests/TestResults/*.trx
+            - store_test_results:
+                path: ~/junit
