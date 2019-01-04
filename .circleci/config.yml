@@ -1,16 +1,31 @@
-version: 2
+version: 2.1
+
+executors:
+  dotnet-circleci:
+    docker:
+      - image: codekinson/dotnet-circleci:preview
+    working_directory: ~/project
+
 jobs:
     build:
-        docker:
-            - image: codekinson/dotnet-circleci:preview
-        environment:
-            CONFIGURATION: Release
-        working_directory: ~/project
+        executor: dotnet-circleci
         steps:
             - checkout
             - run: 
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION}
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                    - test
+                    - src
+                    - '*.sln'
+
+    test:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
             - run: 
                 name: Run Tests
                 command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
@@ -25,20 +40,31 @@ jobs:
                     curl -s https://codecov.io/bash > codecov
                     chmod +x codecov
                     ./codecov -t "${CODECOV_TOKEN}"
-            - run:
-                name: Pack
-                command: dotnet pack --configuration ${CONFIGURATION} --no-build
             - store_test_results:
                 path: ~/junit
-            - persist_to_workspace:
-                root: ~/project
-                paths:
-                    - test
-                    - src
-                    - '*.sln'
+
+    pack:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: Create Artifacts Directory
+                command: mkdir -p /project-artifacts
+            - run:
+                name: Pack
+                command: dotnet pack --configuration ${CONFIGURATION} --no-build --output /project-artifacts
+            - store_artifacts:
+                path: /project-artifacts
 
 workflows:
     version: 2
     build_preview:
         jobs:
             - build
+            - test
+                requires:
+                    - build
+            - pack
+                requires:
+                    - test
