@@ -33,7 +33,9 @@ jobs:
             - persist_to_workspace:
                 root: ~/project
                 paths:
-                    - .
+                    - test
+                    - src
+                    - '*.sln'
 
 workflows:
     version: 2
