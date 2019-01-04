@@ -62,9 +62,9 @@ workflows:
     build_preview:
         jobs:
             - build
-            - test
+            - test:
                 requires:
                     - build
-            - pack
+            - pack:
                 requires:
                     - test
