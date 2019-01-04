@@ -11,22 +11,31 @@ jobs:
         executor: dotnet-circleci
         steps:
             - checkout
+            - run:
+                name: NuGet Package Link
+                command: |
+                    mkdir -p ~/project/packages
+                    ln -s ~/project/packages ~/.nuget/packages
             - run: 
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION}
             - persist_to_workspace:
-                root: /
+                root: ~/project
                 paths:
-                    - .nuget
-                    - project/test
-                    - project/src
-                    - project/*.sln
+                    - packages
+                    - test
+                    - src
+                    - '*.sln'
 
     test:
         executor: dotnet-circleci
         steps:
             - attach_workspace:
                 at: .
+            - run:
+                name: NuGet Package Link
+                command: |
+                    ln -s ~/project/packages ~/.nuget/packages
             - run: 
                 name: Run Tests
                 command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
@@ -48,7 +57,11 @@ jobs:
         executor: dotnet-circleci
         steps:
             - attach_workspace:
-                at: /
+                at: .
+            - run:
+                name: NuGet Package Link
+                command: |
+                    ln -s ~/project/packages ~/.nuget/packages
             - run:
                 name: Create Artifacts Directory
                 command: mkdir -p /project-artifacts
