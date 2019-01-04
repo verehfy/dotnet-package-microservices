@@ -15,11 +15,12 @@ jobs:
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION}
             - persist_to_workspace:
-                root: ~/project
+                root: /
                 paths:
-                    - test
-                    - src
-                    - '*.sln'
+                    - .nuget
+                    - project/test
+                    - project/src
+                    - project/*.sln
 
     test:
         executor: dotnet-circleci
@@ -47,7 +48,7 @@ jobs:
         executor: dotnet-circleci
         steps:
             - attach_workspace:
-                at: .
+                at: /
             - run:
                 name: Create Artifacts Directory
                 command: mkdir -p /project-artifacts
