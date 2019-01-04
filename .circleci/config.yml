@@ -3,14 +3,17 @@ jobs:
     build:
         docker:
             - image: codekinson/dotnet-circleci:preview
+        environment:
+            CONFIGURATION: Release
+        working_directory: ~/project
         steps:
             - checkout
             - run: 
                 name: Build
-                command: dotnet build 
+                command: dotnet build --configuration ${CONFIGURATION}
             - run: 
                 name: Run Tests
-                command: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --no-build --logger:trx
+                command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
             - run: 
                 name: Convert Test Results
                 command: |
@@ -22,11 +25,18 @@ jobs:
                     curl -s https://codecov.io/bash > codecov
                     chmod +x codecov
                     ./codecov -t "${CODECOV_TOKEN}"
+            - run:
+                name: Pack
+                dotnet pack --configuration ${CONFIGURATION} --no-build
             - store_test_results:
                 path: ~/junit
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                    - .
 
 workflows:
     version: 2
-    build_and_test:
+    build_preview:
         jobs:
             - build
