@@ -27,7 +27,7 @@ jobs:
                     ./codecov -t "${CODECOV_TOKEN}"
             - run:
                 name: Pack
-                dotnet pack --configuration ${CONFIGURATION} --no-build
+                command: dotnet pack --configuration ${CONFIGURATION} --no-build
             - store_test_results:
                 path: ~/junit
             - persist_to_workspace:
