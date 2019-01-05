@@ -1,16 +1,48 @@
-version: 2
+version: 2.1
+
+executors:
+  dotnet-circleci:
+    docker:
+      - image: codekinson/dotnet-circleci:preview
+    working_directory: ~/project
+
 jobs:
     build:
-        docker:
-            - image: codekinson/dotnet-circleci:preview
+        executor: dotnet-circleci
         steps:
             - checkout
+            - run:
+                name: Get Version
+                command: dotnet gitversion /output json /showvariable SemVer > version.txt
+            - run:
+                name: NuGet Package Link
+                command: |
+                    mkdir -p ~/project/packages
+                    ln -s ~/project/packages ~/.nuget/packages
             - run: 
                 name: Build
-                command: dotnet build
+                command: dotnet build --configuration ${CONFIGURATION} /p:Version=$(cat version.txt)
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                    - version.txt
+                    - packages
+                    - test
+                    - src
+                    - '*.sln'
+
+    test:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: NuGet Package Link
+                command: |
+                    ln -s ~/project/packages ~/.nuget/packages
             - run: 
                 name: Run Tests
-                command: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --no-build --logger:trx
+                command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
             - run: 
                 name: Convert Test Results
                 command: |
@@ -24,3 +56,93 @@ jobs:
                     ./codecov -t "${CODECOV_TOKEN}"
             - store_test_results:
                 path: ~/junit
+
+    pack:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: NuGet Package Link
+                command: |
+                    ln -s ~/project/packages ~/.nuget/packages
+            - run:
+                name: Create Artifacts Directory
+                command: mkdir -p ~/project/project-artifacts
+            - run:
+                name: Pack
+                command: dotnet pack --configuration ${CONFIGURATION} --no-build --output ~/project/project-artifacts /p:Version=$(cat version.txt)
+            - persist_to_workspace:
+                root: ~/project
+                paths:
+                    - project-artifacts
+            - store_artifacts:
+                path: ./project-artifacts
+
+    deploy-myget:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: Deploy Package to MyGet
+                command: dotnet nuget push ~/project/project-artifacts/'*.nupkg' --api-key ${MYGET_NUGET_API_KEY} --source ${MYGET_NUGET_SOURCE_URL}
+
+    deploy-nuget:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: Deploy Package to MyGet
+                command: dotnet nuget push /project-artifacts/*.nupkg --api-key ${NUGET_API_KEY}
+
+workflows:
+    version: 2
+    build_test_prs:
+        jobs:
+            - build:
+                filters:
+                    tags:
+                        ignore:
+                            - /.*/
+                    branches:
+                        ignore:
+                            - /.*/
+            - test:
+                requires:
+                    - build
+    build_deploy_myget:
+        jobs:
+            - build:
+                filters:
+                    branches:
+                        only:
+                            - /^features?[\/-].+$/
+            - test:
+                requires:
+                    - build
+            - pack:
+                requires:
+                    - test
+            - deploy-myget:
+                requires:
+                    - pack
+    build_deploy_nuget:
+        jobs:
+            - build:
+                filters:
+                    branches:
+                        only:
+                            - master
+                    tags:
+                        only: /^v.+$/
+            - test:
+                requires:
+                    - build
+            - pack:
+                requires:
+                    - test
+            - deploy-nuget:
+                requires:
+                    - pack
