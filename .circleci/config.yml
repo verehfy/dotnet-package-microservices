@@ -72,17 +72,64 @@ jobs:
             - run:
                 name: Pack
                 command: dotnet pack --configuration ${CONFIGURATION} --no-build --output /project-artifacts /p:Version=$(cat version.txt)
+            - persist_to_workspace:
+                root: /project-artifacts
+                paths:
+                    - .
             - store_artifacts:
                 path: /project-artifacts
 
+    deploy-myget:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: Deploy Package to MyGet
+                command: dotnet nuget push /project-artifacts/*.nupkg --api-key ${MYGET_NUGET_API_KEY} --source ${MYGET_NUGET_SOURCE_URL}
+
+    deploy-nuget:
+        executor: dotnet-circleci
+        steps:
+            - attach_workspace:
+                at: .
+            - run:
+                name: Deploy Package to MyGet
+                command: dotnet nuget push /project-artifacts/*.nupkg --api-key ${NUGET_API_KEY}
+
 workflows:
     version: 2
-    build_preview:
+    build_deploy_myget:
         jobs:
-            - build
+            - build:
+                filters:
+                    branches:
+                        only:
+                            - /^features?[\/-].+$/
             - test:
                 requires:
                     - build
             - pack:
                 requires:
                     - test
+            - deploy-myget:
+                requires:
+                    - pack
+    build_deploy_nuget:
+        jobs:
+            - build:
+                filters:
+                    branches:
+                        only:
+                            - master
+                    tags:
+                        only: /^v.+$/
+            - test:
+                requires:
+                    - build
+            - pack:
+                requires:
+                    - test
+            - deploy-nuget:
+                requires:
+                    - pack
