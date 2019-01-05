@@ -68,16 +68,16 @@ jobs:
                     ln -s ~/project/packages ~/.nuget/packages
             - run:
                 name: Create Artifacts Directory
-                command: mkdir -p /project-artifacts
+                command: mkdir -p ./project-artifacts
             - run:
                 name: Pack
-                command: dotnet pack --configuration ${CONFIGURATION} --no-build --output /project-artifacts /p:Version=$(cat version.txt)
+                command: dotnet pack --configuration ${CONFIGURATION} --no-build --output ./project-artifacts /p:Version=$(cat version.txt)
             - persist_to_workspace:
-                root: /project-artifacts
+                root: ~/project
                 paths:
-                    - .
+                    - project-artifacts
             - store_artifacts:
-                path: /project-artifacts
+                path: ./project-artifacts
 
     deploy-myget:
         executor: dotnet-circleci
@@ -86,7 +86,7 @@ jobs:
                 at: .
             - run:
                 name: Deploy Package to MyGet
-                command: dotnet nuget push /project-artifacts/*.nupkg --api-key ${MYGET_NUGET_API_KEY} --source ${MYGET_NUGET_SOURCE_URL}
+                command: dotnet nuget push *.nupkg --api-key ${MYGET_NUGET_API_KEY} --source ${MYGET_NUGET_SOURCE_URL}
 
     deploy-nuget:
         executor: dotnet-circleci
