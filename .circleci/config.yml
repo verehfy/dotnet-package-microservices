@@ -99,6 +99,19 @@ jobs:
 
 workflows:
     version: 2
+    build_test_prs:
+        jobs:
+            - build:
+                filters:
+                    tags:
+                        ignore:
+                            - /.*/
+                    branches:
+                        ignore:
+                            - /.*/
+            - test:
+                requires:
+                    - build
     build_deploy_myget:
         jobs:
             - build:
