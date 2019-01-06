@@ -95,7 +95,7 @@ jobs:
                 at: .
             - run:
                 name: Deploy Package to MyGet
-                command: dotnet nuget push ~/project/project-artifacts/'*.nupkg' --api-key ${NUGET_API_KEY} --source ${NUGET_SOURCE_URL}
+                command: dotnet nuget push ~/project/project-artifacts/'*.nupkg' --api-key ${NUGET_API_KEY} --source ${NUGET_SOURCE_URL} --no-symbols
 
 workflows:
     version: 2
