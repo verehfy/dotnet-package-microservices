@@ -42,7 +42,7 @@ jobs:
                     ln -s ~/project/packages ~/.nuget/packages
             - run: 
                 name: Run Tests
-                command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+                command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Include='[Codekinson.*]*'
             - run: 
                 name: Convert Test Results
                 command: |
