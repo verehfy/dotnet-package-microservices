@@ -25,6 +25,9 @@ jobs:
             - run: 
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION} /p:Version=$(cat version.txt)
+            - run:
+                name: End Sonar Scanner
+                command: dotnet sonarscanner end /d:sonar.login="${SONARCLOUD_LOGIN}"
             - persist_to_workspace:
                 root: ~/project
                 paths:
