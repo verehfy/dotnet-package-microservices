@@ -68,7 +68,7 @@ namespace Codekinson.Microservices.Extensions
                 }
                 finally
                 {
-                    attempts++;
+                    attempts += 1;
                 }
             }
             

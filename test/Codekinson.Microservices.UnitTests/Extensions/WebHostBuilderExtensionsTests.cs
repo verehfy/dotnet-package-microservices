@@ -29,7 +29,7 @@ namespace Codekinson.Microservices.UnitTests.Extensions
             _busControl
                 .StartAsync(Arg.Any<CancellationToken>())
                 .Returns(
-                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new Exception()))), 
+                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new InvalidOperationException()))), 
                     x => Task.FromResult(Substitute.For<BusHandle>()));
             
             Action actual = () => _webHostBuilder.EnsureRabbitMqServerAvailable(factory => _busControl, 1);
@@ -43,8 +43,8 @@ namespace Codekinson.Microservices.UnitTests.Extensions
             _busControl
                 .StartAsync(Arg.Any<CancellationToken>())
                 .Returns(
-                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new Exception()))),
-                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new Exception()))),
+                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new InvalidOperationException()))),
+                    x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new InvalidOperationException()))),
                     x => Task.FromResult(Substitute.For<BusHandle>()));
             
             Action actual = () => _webHostBuilder.EnsureRabbitMqServerAvailable(factory => _busControl, 1);
