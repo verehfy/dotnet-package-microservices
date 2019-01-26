@@ -11,26 +11,51 @@ namespace Codekinson.Microservices.Extensions
 {
     public static class WebHostBuilderExtensions
     {
-        public static IWebHostBuilder EnsureRabbitMqServerAvailable(this IWebHostBuilder builder, string busHost, string virtualHost = "/")
+        public static IWebHostBuilder EnsureRabbitMqServerAvailable(this IWebHostBuilder builder, string busHost)
         {
-            if (string.IsNullOrWhiteSpace(busHost)) throw new ArgumentNullException(nameof(busHost));
-            if (string.IsNullOrWhiteSpace(virtualHost)) throw new ArgumentNullException(nameof(virtualHost));
+            return EnsureRabbitMqServerAvailable(builder, busHost, "/");
+        }
+        
+        public static IWebHostBuilder EnsureRabbitMqServerAvailable(this IWebHostBuilder builder, string busHost, string virtualHost)
+        {
+            if (string.IsNullOrWhiteSpace(busHost))
+            {
+                throw new ArgumentNullException(nameof(busHost));
+            }
+
+            if (string.IsNullOrWhiteSpace(virtualHost))
+            {
+                throw new ArgumentNullException(nameof(virtualHost));
+            }
             
-            var stopwatch = Stopwatch.StartNew();
+            return EnsureRabbitMqServerAvailable(
+                builder, 
+                factory => factory.CreateUsingRabbitMq(cfg => { cfg.Host(busHost, virtualHost, h => { }); }),
+                3);
+        }
+        
+        public static IWebHostBuilder EnsureRabbitMqServerAvailable(this IWebHostBuilder builder, Func<IBusFactorySelector, IBusControl> createBusControl, int numberOfRetries)
+        {
+            if (createBusControl == null)
+            {
+                throw new ArgumentNullException(nameof(createBusControl));
+            }
+            
+            var attempts = 0;
             var available = false;
             while (!available)
             {
-                if (stopwatch.Elapsed > TimeSpan.FromSeconds(30))
+                if (attempts > numberOfRetries)
                 {
                     throw new InvalidOperationException();
                 }
-                
+
                 try
                 {
-                    Bus
-                        .Factory
-                        .CreateUsingRabbitMq(cfg => { cfg.Host(busHost, virtualHost, h => { }); })
-                        .Start();
+                    var factory = Bus.Factory;
+                    var control = createBusControl(factory);
+                    control.Start();
+                    
                     available = true;
                     Log.Information("Event bus available, continuing");
                 }
@@ -40,6 +65,10 @@ namespace Codekinson.Microservices.Extensions
                     available = false;
                     Log.Information("Unable to connect to the rabbit queue, retrying in 5 seconds");
                     Thread.Sleep(5000);
+                }
+                finally
+                {
+                    attempts += 1;
                 }
             }
             
