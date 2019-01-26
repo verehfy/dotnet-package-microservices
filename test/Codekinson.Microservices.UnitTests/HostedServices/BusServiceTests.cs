@@ -13,14 +13,12 @@ namespace Codekinson.Microservices.UnitTests.HostedServices
     {
         private readonly BusService _systemUnderTest;
         private readonly IBusControl _busControl;
-        private ILogger<BusService> _logger;
 
         public BusServiceTests()
         {
             _busControl = Substitute.For<IBusControl>();
-            _logger = Substitute.For<ILogger<BusService>>();
             
-            _systemUnderTest = new BusService(_busControl, _logger);
+            _systemUnderTest = new BusService(_busControl, Substitute.For<ILogger<BusService>>());
         }
 
         [Fact]
