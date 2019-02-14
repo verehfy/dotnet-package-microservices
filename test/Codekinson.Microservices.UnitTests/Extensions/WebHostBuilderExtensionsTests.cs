@@ -6,6 +6,7 @@ using FluentAssertions;
 using MassTransit;
 using MassTransit.RabbitMqTransport;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
@@ -14,12 +15,25 @@ namespace Codekinson.Microservices.UnitTests.Extensions
 {
     public class WebHostBuilderExtensionsTests
     {
-        private readonly IWebHostBuilder _webHostBuilder;
+        private readonly IWebHost _webHost;
         private readonly IBusControl _busControl;
 
         public WebHostBuilderExtensionsTests()
         {
-            _webHostBuilder = Substitute.For<IWebHostBuilder>();
+            _webHost = Substitute.For<IWebHost>();
+            
+            var serviceScope = Substitute.For<IServiceScope>();
+            var serviceProvider = Substitute.For<IServiceProvider>();
+            var serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
+
+            serviceProvider.GetService(typeof(IServiceScopeFactory)).Returns(serviceScopeFactory);
+            
+            _webHost.Services.Returns(serviceProvider);
+            
+            serviceScope.ServiceProvider.Returns(serviceProvider);
+            
+            serviceScopeFactory.CreateScope().Returns(serviceScope);
+            
             _busControl = Substitute.For<IBusControl>();
         }
 
@@ -32,7 +46,7 @@ namespace Codekinson.Microservices.UnitTests.Extensions
                     x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new InvalidOperationException()))), 
                     x => Task.FromResult(Substitute.For<BusHandle>()));
             
-            Action actual = () => _webHostBuilder.EnsureRabbitMqServerAvailable(factory => _busControl, 1);
+            Action actual = () => _webHost.EnsureRabbitMqServerAvailable((services, factory) => _busControl, 1);
             
             actual.Should().NotThrow();
         }
@@ -47,7 +61,7 @@ namespace Codekinson.Microservices.UnitTests.Extensions
                     x => Task.FromException<BusHandle>(new RabbitMqConnectionException("meh", new BrokerUnreachableException(new InvalidOperationException()))),
                     x => Task.FromResult(Substitute.For<BusHandle>()));
             
-            Action actual = () => _webHostBuilder.EnsureRabbitMqServerAvailable(factory => _busControl, 1);
+            Action actual = () => _webHost.EnsureRabbitMqServerAvailable((services, factory) => _busControl, 1);
             
             actual.Should().Throw<InvalidOperationException>();
         }
@@ -55,7 +69,7 @@ namespace Codekinson.Microservices.UnitTests.Extensions
         [Fact]
         public void EnsureRabbitMqServerAvailable_WithSuccessfulAttempt_DoesNotThrow()
         {
-            Action actual = () => _webHostBuilder.EnsureRabbitMqServerAvailable(factory => _busControl, 1);
+            Action actual = () => _webHost.EnsureRabbitMqServerAvailable((services, factory) => _busControl, 1);
             
             actual.Should().NotThrow();
         }
