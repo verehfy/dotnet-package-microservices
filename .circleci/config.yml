@@ -21,7 +21,7 @@ jobs:
                     ln -s ~/project/packages ~/.nuget/packages
             - run:
                 name: Begin Sonar Scanner
-                command: dotnet sonarscanner begin /o:sam /k:"${SONARCLOUD_PROJECTKEY}" /d:sonar.organization="${SONARCLOUD_ORGANIZATION}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="${SONARCLOUD_LOGIN}"
+                command: dotnet sonarscanner begin /o:"${SONARCLOUD_ORGANIZATION}" /k:"${SONARCLOUD_PROJECTKEY}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="${SONARCLOUD_LOGIN}"
             - run:
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION} /p:Version=$(cat version.txt)
