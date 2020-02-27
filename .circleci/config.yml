@@ -1,10 +1,10 @@
 version: 2.1
 
 executors:
-  dotnet-circleci:
-    docker:
-      - image: codekinson/dotnet-circleci:preview
-    working_directory: ~/project
+    dotnet-circleci:
+        docker:
+            - image: codekinson/dotnet-circleci:preview
+        working_directory: ~/project
 
 jobs:
     build:
@@ -21,8 +21,8 @@ jobs:
                     ln -s ~/project/packages ~/.nuget/packages
             - run:
                 name: Begin Sonar Scanner
-                command: dotnet sonarscanner begin /k:"${SONARCLOUD_PROJECTKEY}" /d:sonar.organization="${SONARCLOUD_ORGANIZATION}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="${SONARCLOUD_LOGIN}"
-            - run: 
+                command: dotnet sonarscanner begin /o:sam /k:"${SONARCLOUD_PROJECTKEY}" /d:sonar.organization="${SONARCLOUD_ORGANIZATION}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="${SONARCLOUD_LOGIN}"
+            - run:
                 name: Build
                 command: dotnet build --configuration ${CONFIGURATION} /p:Version=$(cat version.txt)
             - run:
@@ -46,10 +46,10 @@ jobs:
                 name: NuGet Package Link
                 command: |
                     ln -s ~/project/packages ~/.nuget/packages
-            - run: 
+            - run:
                 name: Run Tests
                 command: dotnet test --configuration ${CONFIGURATION} --no-build --logger:trx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Include='[Codekinson.*]*'
-            - run: 
+            - run:
                 name: Convert Test Results
                 command: |
                     mkdir -p ~/junit
