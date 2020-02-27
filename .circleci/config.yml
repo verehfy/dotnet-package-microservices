@@ -13,7 +13,7 @@ jobs:
             - checkout
             - run:
                 name: Get Version
-                command: dotnet gitversion /output json /showvariable SemVer > version.txt
+                command: echo -n $(dotnet gitversion /output json /showvariable SemVer | tr -d " \t\n\r") > version.txt
             - run:
                 name: NuGet Package Link
                 command: |
