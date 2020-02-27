@@ -1,6 +1,6 @@
 mode: ContinuousDelivery
 tag-prefix: '[vV]'
-branches: 
+branches:
     master:
         regex: master
         mode: ContinuousDeployment

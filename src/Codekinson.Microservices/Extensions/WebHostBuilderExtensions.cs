@@ -11,7 +11,17 @@ namespace Codekinson.Microservices.Extensions
 {
     public static class WebHostBuilderExtensions
     {
-        public static IWebHost EnsureRabbitMqServerAvailable(this IWebHost webHost, Func<IServiceProvider, IBusFactorySelector, IBusControl> createBusControl, int numberOfRetries = 3)
+        public static IWebHost EnsureRabbitMqServerAvailable(
+            this IWebHost webHost,
+            Func<IServiceProvider, IBusFactorySelector, IBusControl> createBusControl)
+        {
+            return EnsureRabbitMqServerAvailable(webHost, createBusControl, 3);
+        }
+        
+        public static IWebHost EnsureRabbitMqServerAvailable(
+            this IWebHost webHost,
+            Func<IServiceProvider, IBusFactorySelector, IBusControl> createBusControl, 
+            int numberOfRetries)
         {
             if (createBusControl == null)
             {
