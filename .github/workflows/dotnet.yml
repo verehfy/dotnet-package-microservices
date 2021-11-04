@@ -9,13 +9,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      
       - name: Setup .NET Core SDK 5.0.x
         uses: actions/setup-dotnet@v1.7.2
         with:
           dotnet-version: '5.0.x'
+          source-url: https://nuget.pkg.github.com/verehfy/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      
       - name: Install dependencies
         run: dotnet restore
+      
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      
       - name: Test
         run: dotnet test --no-restore --verbosity normal
+      
+      - name: Create the package
+        run: dotnet pack --configuration Release src/Verehfy.Microservices
+      
+      - name: Publish the package to GPR
+        run: dotnet nuget push src/Verehfy.Microservices/bin/Release/*.nupkg
