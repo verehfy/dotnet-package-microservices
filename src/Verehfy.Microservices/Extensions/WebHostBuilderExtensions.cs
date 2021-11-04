@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client.Exceptions;
 using Serilog;
 
-namespace Codekinson.Microservices.Extensions
+namespace Verehfy.Microservices.Extensions
 {
     public static class WebHostBuilderExtensions
     {

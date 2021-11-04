@@ -4,7 +4,7 @@ using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Codekinson.Microservices.HostedServices
+namespace Verehfy.Microservices.HostedServices
 {
     public class BusService : IHostedService
     {

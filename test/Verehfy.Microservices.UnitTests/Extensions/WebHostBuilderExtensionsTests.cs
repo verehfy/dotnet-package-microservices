@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Codekinson.Microservices.Extensions;
 using FluentAssertions;
 using MassTransit;
 using MassTransit.RabbitMqTransport;
@@ -9,9 +8,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using RabbitMQ.Client.Exceptions;
+using Verehfy.Microservices.Extensions;
 using Xunit;
 
-namespace Codekinson.Microservices.UnitTests.Extensions
+namespace Verehfy.Microservices.UnitTests.Extensions
 {
     public class WebHostBuilderExtensionsTests
     {

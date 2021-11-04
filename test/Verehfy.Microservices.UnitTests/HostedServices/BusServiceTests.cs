@@ -1,13 +1,13 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Codekinson.Microservices.HostedServices;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.Threading;
+using System.Threading.Tasks;
+using Verehfy.Microservices.HostedServices;
 using Xunit;
 
-namespace Codekinson.Microservices.UnitTests.HostedServices
+namespace Verehfy.Microservices.UnitTests.HostedServices
 {
     public class BusServiceTests
     {
