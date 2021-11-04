@@ -31,4 +31,6 @@ jobs:
         run: dotnet pack --configuration Release src/Verehfy.Microservices
       
       - name: Publish the package to GPR
-        run: dotnet nuget push src/Verehfy.Microservices/bin/Release/*.nupkg
+        run: dotnet nuget push --api-key ${GITHUB_TOKEN} --source src/Verehfy.Microservices/bin/Release/*.nupkg
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
